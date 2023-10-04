@@ -1,0 +1,45 @@
+.ant-card {
+    max-width: 454px;
+    max-height: 290px;
+    display: grid;
+    grid-template-columns: 0.8fr 1fr;
+    background-color: #FFFFFF;
+}
+
+.ant-card-body {
+    position: relative;
+    padding: 0 0 12px 0;
+    margin-top: 12px;
+    margin-right: 9px;
+    max-height: 281px;
+    display: flex;
+    flex-direction: column;
+}
+
+.ant-card-cover img {
+    max-height: 281px;
+    object-fit: cover;
+}
+
+.ant-tag {
+    max-width: 46px;
+    max-height: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-right: 5px;
+}
+
+span.ant-typography {
+    font-size: 1vw;
+}
+
+@media (min-width: 1024px ) {
+    span.ant-typography {
+        font-size: 1vw;
+    }
+}
+
+.card-title{
+    display: grid;
+    font-weight: bold;
+}
