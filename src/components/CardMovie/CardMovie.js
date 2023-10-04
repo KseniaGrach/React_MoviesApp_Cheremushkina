@@ -1,7 +1,6 @@
 import React from 'react';
 
 import PropTypes from 'prop-types';
-import { format, parseISO } from 'date-fns';
 
 import './CardMovie.css';
 import { Card, Tag, Typography } from 'antd';
@@ -13,8 +12,6 @@ const CardMovie = ({ movieDataFromBase }) => {
     const tag1 = 'Action';
     const tag2 = 'Drama';
     const { posterURL, id, filmTitle, releaseDate, overview } = movie;
-
-    const releaseDateFormatted = format(parseISO(releaseDate), 'MMMM dd, yyyy');
 
     function truncate(numberSymbols, useWordBoundary) {
       if (this.length <= numberSymbols) {
@@ -31,7 +28,7 @@ const CardMovie = ({ movieDataFromBase }) => {
         <div className="card-title">
           <p className="card-film-title">{filmTitle}</p>
         </div>
-        <Text type="secondary">{releaseDateFormatted}</Text>
+        <Text type="secondary">{releaseDate}</Text>
         <div className="card-tags">
           <Tag>{tag1}</Tag>
           <Tag>{tag2}</Tag>
