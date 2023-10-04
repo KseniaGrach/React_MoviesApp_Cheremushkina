@@ -5,3 +5,9 @@
     grid-row-gap: 32px;
     grid-column-gap: 36px;
 }
+
+@media (max-width: 830px ) {
+    .cardMovie-list {
+        grid-template-columns: 1fr
+    }
+}

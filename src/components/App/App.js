@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
-import { Alert, Empty, Pagination, Space, Spin } from 'antd';
+import store from 'store';
+import { Alert, Empty, Layout, Pagination, Space, Spin } from 'antd';
 import { format, parseISO } from 'date-fns';
 
+import { Context } from '../GenresMovie/GenresMovie';
 import Header from '../Header';
 import SearchPanel from '../SearchPanel';
 import CardMovieList from '../CardMovieList';
@@ -12,69 +14,42 @@ import './App.css';
 export default class App extends Component {
   state = {
     movieData: [],
+    ratedFilmData: [],
+    genresList: [],
     isLoading: true,
     isError: false,
     notFound: false,
-    searchQuery: 'Good day',
+    searchQuery: '',
     numberPage: 1,
-    totalPages: 1,
+    totalPages: 0,
+    guestSessionId: '',
+    tabPane: '1',
+    rating: 0,
   };
 
   MovieDbService = new MovieDbService();
 
   componentDidMount() {
-    this.getMoviesData();
+    if (!store.get('guestSessionId')) {
+      this.createGuestSession();
+    } else {
+      this.setState({
+        guestSessionId: store.get('guestSessionId'),
+      });
+    }
+
+    this.getGenresList();
+    this.getPopularMovies();
   }
 
-  onInputChange = (searchQuery) => {
-    this.setState(
-      {
-        searchQuery,
-        numberPage: 1,
-      },
-      () => {
-        this.getMoviesData();
-      }
-    );
-  };
-
-  onPageChange = (page) => {
-    this.setState(
-      {
-        numberPage: page,
-      },
-      () => {
-        this.getMoviesData();
-      }
-    );
-  };
-
-  getMoviesData = () => {
-    const { searchQuery, numberPage } = this.state;
+  getGenresList = () => {
     const callMovieDbService = new MovieDbService();
 
-    this.setState({
-      movieData: [],
-      isLoading: true,
-      notFound: false,
-      isError: false,
-    });
-
     callMovieDbService
-      .getMovies(searchQuery, numberPage)
-      .then((movies) => {
+      .getGenersList()
+      .then((body) => {
         this.setState({
-          totalPages: movies.total_pages,
-          numberPage,
-        });
-        if (movies.results.length === 0) {
-          this.setState({
-            isLoading: false,
-            notFound: true,
-          });
-        }
-        movies.results.forEach((elm) => {
-          this.addMovie(elm);
+          genresList: [...body.genres],
         });
       })
       .catch(() => {
@@ -86,7 +61,177 @@ export default class App extends Component {
       });
   };
 
-  addMovie = (movie) => {
+  createGuestSession = () => {
+    const callMovieDbService = new MovieDbService();
+    callMovieDbService
+      .guestSession()
+      .then((body) => {
+        store.set('guestSessionId', `${body.guest_session_id}`);
+        this.setState({
+          guestSessionId: body.guest_session_id,
+          isLoading: false,
+        });
+      })
+      .catch(() => {
+        this.setState({
+          isLoading: false,
+          notFound: false,
+          isError: true,
+        });
+      });
+  };
+
+  searchMoviesData = () => {
+    const { searchQuery, numberPage } = this.state;
+    const callMovieDbService = new MovieDbService();
+
+    this.setState({
+      movieData: [],
+      isLoading: true,
+      notFound: false,
+      isError: false,
+    });
+
+    if (searchQuery === '') {
+      this.getPopularMovies();
+    } else {
+      callMovieDbService
+        .searchMovies(searchQuery, numberPage)
+        .then((item) => {
+          this.setState({
+            // eslint-disable-next-line react/no-unused-state
+            totalPages: item.total_pages,
+            numberPage,
+          });
+          if (item.results.length === 0) {
+            this.setState({
+              isLoading: false,
+              notFound: true,
+            });
+          }
+          item.results.forEach((elm) => {
+            this.addMovieToList(elm);
+          });
+        })
+        .catch(() => {
+          this.setState({
+            isLoading: false,
+            notFound: false,
+            isError: true,
+          });
+        });
+    }
+  };
+
+  getPopularMovies = () => {
+    const { numberPage } = this.state;
+    const callMovieDbService = new MovieDbService();
+    this.setState({
+      movies: [],
+      isLoading: true,
+      notFound: false,
+      isError: false,
+    });
+
+    callMovieDbService
+      .getPopularMovies(numberPage)
+      .then((item) => {
+        this.setState({
+          totalPages: item.total_pages,
+          numberPage,
+        });
+        if (item.results.length === 0) {
+          this.setState({
+            isLoading: false,
+            notFound: true,
+          });
+        }
+        item.results.forEach((elm) => {
+          this.addMovieToList(elm);
+        });
+      })
+      .catch(() => {
+        this.setState({
+          isLoading: false,
+          notFound: false,
+          isError: true,
+        });
+      });
+  };
+
+  getRatedMovies = () => {
+    const { guestSessionId } = this.state;
+    const callMovieDbService = new MovieDbService();
+    this.setState({
+      ratedFilmData: [],
+      isLoading: true,
+      notFound: false,
+      isError: false,
+    });
+    callMovieDbService
+      .getRatedMovies(guestSessionId)
+      .then((item) => {
+        if (item.results.length === 0) {
+          this.setState({
+            isLoading: false,
+            notFound: true,
+          });
+        }
+        item.results.forEach((elm) => {
+          this.addRatedMovie(elm);
+        });
+      })
+      .catch(() => {
+        this.setState({
+          isLoading: false,
+          notFound: false,
+          isError: true,
+        });
+      });
+  };
+
+  onInputChange = (searchQuery) => {
+    this.setState(
+      {
+        searchQuery,
+        numberPage: 1,
+      },
+      () => {
+        this.searchMoviesData();
+      }
+    );
+  };
+
+  onTabChange = (key) => {
+    if (key === '2') {
+      this.setState(
+        {
+          tabPane: key,
+        },
+        () => {
+          this.getRatedMovies();
+        }
+      );
+    } else {
+      this.setState({
+        notFound: false,
+        tabPane: key,
+      });
+    }
+  };
+
+  onPageChange = (page) => {
+    this.setState(
+      {
+        numberPage: page,
+      },
+      () => {
+        this.searchMoviesData();
+      }
+    );
+  };
+
+  addMovieToList = (movie) => {
     const newMovie = this.createMovie(movie);
     this.setState(({ movieData }) => {
       const newMovieData = [...movieData, newMovie];
@@ -97,16 +242,45 @@ export default class App extends Component {
     });
   };
 
+  addRatedMovie = (movie) => {
+    const newMovie = this.createMovie(movie);
+
+    this.setState(({ ratedFilmData }) => {
+      const newMovieData = [...ratedFilmData, newMovie];
+      return {
+        ratedFilmData: newMovieData,
+      };
+    });
+  };
+
+  getGenresFilm = (genresIds) => {
+    const filmGenres = [];
+    const { genresList } = this.state;
+    for (let genreId of genresIds) {
+      genresList.forEach((el) => {
+        if (el.id === genreId) {
+          filmGenres.push(el.name);
+        }
+      });
+    }
+
+    return filmGenres;
+  };
+
   createMovie = (movie) => {
     const releaseDate = movie.release_date ? format(parseISO(movie.release_date), 'MMMM dd, yyyy') : 'no release date';
     const filmTitle = movie.title || 'Movie title not specified';
     const overview = movie.overview || 'Movie overview not specified';
-    const popularity = movie.popularity || -0;
+    const popularity = movie.vote_average || 0;
+    const rating = store.get(`${movie.id}`) || movie.rating || 0;
 
     let posterURL = `https://sun9-69.userapi.com/c11392/u50493878/-6/x_cea601e1.jpg`;
     if (movie.poster_path) {
       posterURL = `https://image.tmdb.org/t/p/w185${movie.poster_path}`;
     }
+
+    const genres = this.getGenresFilm(movie.genre_ids);
+
     return {
       id: movie.id,
       filmTitle,
@@ -114,6 +288,8 @@ export default class App extends Component {
       releaseDate,
       overview,
       popularity,
+      rating,
+      genres,
     };
   };
 
@@ -125,25 +301,46 @@ export default class App extends Component {
   };
 
   render() {
-    const { movieData, isLoading, isError, notFound, totalPages, numberPage } = this.state;
+    const { Content } = Layout;
+    const { movieData, isLoading, isError, notFound, totalPages, numberPage, guestSessionId, tabPane, ratedFilmData } =
+      this.state;
 
     const error = isError ? (
-      <Alert message="Error" description="Что-то пошло не так. Пам пам пам" type="error" showIcon />
+      <Alert message="Error" description="Что-то пошло не так._. Пам пам пам.-." type="error" showIcon />
     ) : null;
-    const notFoundMovies = notFound ? <Empty /> : null;
-    const cardMovieList =
-      isLoading && !isError ? <Spin size="large" /> : <CardMovieList movieDataFromBase={movieData} />;
 
+    const foundMovies = notFound ? <Empty /> : <CardMovieList />;
+
+    const spin = isLoading && !isError ? <Spin size="large" /> : null;
+
+    const search = tabPane === '1' ? <SearchPanel onInputChange={this.onInputChange} /> : null;
+
+    const pagination =
+      totalPages > 0 && !isLoading ? (
+        <Pagination
+          defaultCurrent={1}
+          current={numberPage}
+          total={totalPages * 10}
+          showSizeChanger={false}
+          onChange={this.onPageChange}
+        />
+      ) : null;
     return (
-      <div className="App">
-        <Header />
-        <SearchPanel onInputChange={this.onInputChange} />
-        <Space direction="vertical" className="app" align="center">
-          {cardMovieList}
-          {notFoundMovies}
-          {error}
-          <Pagination defaultCurrent={1} current={numberPage} total={totalPages * 10} onChange={this.onPageChange} />
-        </Space>
+      <div className="container">
+        <Layout>
+          <Context.Provider value={{ movieData, ratedFilmData, tabPane, guestSessionId }}>
+            <Content>
+              <Header onTabChange={this.onTabChange} />
+              {search}
+              <Space direction="vertical" align="center">
+                {spin}
+                {foundMovies}
+                {error}
+                {pagination}
+              </Space>
+            </Content>
+          </Context.Provider>
+        </Layout>
       </div>
     );
   }

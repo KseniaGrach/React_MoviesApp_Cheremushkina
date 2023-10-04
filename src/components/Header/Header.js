@@ -1,11 +1,35 @@
-import React, { Component } from 'react';
+import React from 'react';
+import { Tabs } from 'antd';
+
+import PropTypes from 'prop-types';
 
 import './Header.css';
 
-export default class Header extends Component {
-  state = {};
+const Header = ({ onTabChange }) => {
+  const items = [
+    {
+      key: '1',
+      label: 'Search',
+    },
+    {
+      key: '2',
+      label: 'Rated',
+    },
+  ];
 
-  render() {
-    return <div className="header"></div>;
-  }
-}
+  return (
+    <div className="header">
+      <Tabs defaultActiveKey="1" items={items} onChange={onTabChange} />
+    </div>
+  );
+};
+
+Header.defaultProps = {
+  changeTab: () => {},
+};
+
+Header.propTypes = {
+  changeTab: PropTypes.func,
+};
+
+export default Header;

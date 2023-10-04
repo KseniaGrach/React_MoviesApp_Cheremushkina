@@ -1,17 +1,20 @@
-import React from 'react';
+import React, { useContext } from 'react';
 
 import PropTypes from 'prop-types';
 
 import './CardMovie.css';
 import { Card, Tag, Typography } from 'antd';
+import RateStars from '../RateMovie';
+import { Context } from '../GenresMovie/GenresMovie';
 
-const { Text } = Typography;
+const CardMovie = () => {
+  const { Text } = Typography;
 
-const CardMovie = ({ movieDataFromBase }) => {
+  const { movieData, ratedFilmData, tabPane, guestSessionId } = useContext(Context);
+  const movieDataFromBase = tabPane === '1' ? movieData : ratedFilmData;
+
   const listElements = movieDataFromBase.map((movie) => {
-    const tag1 = 'Action';
-    const tag2 = 'Drama';
-    const { posterURL, id, filmTitle, releaseDate, overview } = movie;
+    const { posterURL, id, filmTitle, releaseDate, overview, popularity, rating, genres } = movie;
 
     function truncate(numberSymbols, useWordBoundary) {
       if (this.length <= numberSymbols) {
@@ -23,17 +26,42 @@ const CardMovie = ({ movieDataFromBase }) => {
 
     const overviewTruncated = truncate.apply(overview, [200, true]);
 
+    const inputClasses = ['card-popularity-count'];
+    if (popularity >= 3 && popularity < 5) {
+      inputClasses.push('orange');
+    }
+    if (popularity >= 5 && popularity < 7) {
+      inputClasses.push('yellow');
+    }
+    if (popularity >= 7) {
+      inputClasses.push('green');
+    }
+
+    const filmGenres = (
+      <div>
+        {genres.map((genre) => {
+          return (
+            <Tag className="card-genres-tag" key={genre}>
+              {genre}
+            </Tag>
+          );
+        })}
+      </div>
+    );
+
     return (
-      <Card key={id} hoverable cover={<img alt="images" src={posterURL} />}>
-        <div className="card-title">
-          <p className="card-film-title">{filmTitle}</p>
-        </div>
-        <Text type="secondary">{releaseDate}</Text>
-        <div className="card-tags">
-          <Tag>{tag1}</Tag>
-          <Tag>{tag2}</Tag>
-        </div>
-        <Text>{overviewTruncated}</Text>
+      <Card hoverable key={id}>
+        <img className="card-img" alt={`poster ${filmTitle}`} src={posterURL} />
+
+        <div className="card-movie-title">{filmTitle}</div>
+        <span className={inputClasses.join(' ')}>{popularity.toFixed(1)}</span>
+
+        <Text type="secondary" className="card-release-date">
+          {releaseDate}
+        </Text>
+        <div className="card-tags">{filmGenres}</div>
+        <Text className="card-overview">{overviewTruncated}</Text>
+        <RateStars id={id} guestSessionId={guestSessionId} rating={rating} />
       </Card>
     );
   });
@@ -42,9 +70,11 @@ const CardMovie = ({ movieDataFromBase }) => {
 };
 CardMovie.defaultProps = {
   movieDataFromBase: [],
+  guestSessionId: '',
 };
 CardMovie.propTypes = {
   movieDataFromBase: PropTypes.instanceOf(Array),
+  guestSessionId: PropTypes.string,
 };
 
 export default CardMovie;

@@ -1,12 +1,19 @@
-.app {
+.container {
+    max-width: 1010px;
+    margin: 0 auto;
+    min-width: 320px;
     height: auto;
+    position: relative;
+    padding: 0 36px;
+    background-color: #FFF;
 }
 
-div .ant-spin {
-    position: relative;
-    display: block;
-    margin-top: 25%;
-    margin-left: auto;
-    margin-right: auto;
-    background-color:#F7F7F7;
+.container .ant-layout{
+    min-height: 100vh;
+    background: #FFFFFF;
+}
+
+.ant-space{
+    width: 100%;
+    padding-top: 20px;
 }
