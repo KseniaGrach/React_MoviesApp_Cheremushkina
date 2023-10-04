@@ -32,7 +32,7 @@ const CardMovie = ({ movieDataFromBase }) => {
           <p className="card-film-title">{filmTitle}</p>
         </div>
         <Text type="secondary">{releaseDateFormatted}</Text>
-        <div>
+        <div className="card-tags">
           <Tag>{tag1}</Tag>
           <Tag>{tag2}</Tag>
         </div>

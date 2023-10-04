@@ -1,13 +1,17 @@
 import React, { Component } from 'react';
+import { Alert, Spin } from 'antd';
 
 import Header from '../Header';
 import CardMovieList from '../CardMovieList';
 import MovieDbService from '../../services/MovieDbService';
+
 import './App.css';
 
 export default class App extends Component {
   state = {
     movieData: [],
+    isLoading: true,
+    isError: false,
   };
 
   MovieDbService = new MovieDbService();
@@ -16,12 +20,21 @@ export default class App extends Component {
     this.getMoviesData();
   }
 
-  getMoviesData() {
-    this.MovieDbService.getDataFromServer().then((movies) => {
-      movies.forEach((elm) => {
-        this.addItem(elm);
-      });
+  onError = () => {
+    this.setState({
+      isLoading: false,
+      isError: true,
     });
+  };
+
+  getMoviesData() {
+    this.MovieDbService.getDataFromServer()
+      .then((movies) => {
+        movies.forEach((elm) => {
+          this.addMovie(elm);
+        });
+      })
+      .catch(this.onError);
   }
 
   createMovie = (movie) => {
@@ -39,23 +52,31 @@ export default class App extends Component {
     };
   };
 
-  addItem = (movie) => {
+  addMovie = (movie) => {
     const newMovie = this.createMovie(movie);
     this.setState(({ movieData }) => {
       const newMovieData = [...movieData, newMovie];
       return {
         movieData: newMovieData,
+        isLoading: false,
       };
     });
   };
 
   render() {
-    const { movieData } = this.state;
+    const { movieData, isLoading, isError } = this.state;
+
+    const error = isError ? (
+      <Alert message="Error" description="Что-то пошло не так. Пам пам пам" type="error" showIcon />
+    ) : null;
+    const cardMovieList =
+      isLoading && !isError ? <Spin size="large" /> : <CardMovieList movieDataFromBase={movieData} />;
 
     return (
       <div className="App">
         <Header />
-        <CardMovieList movieDataFromBase={movieData} />
+        {cardMovieList}
+        {error}
       </div>
     );
   }

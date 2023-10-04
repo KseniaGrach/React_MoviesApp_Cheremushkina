@@ -9,8 +9,6 @@
 .ant-card-body {
     position: relative;
     padding: 0 0 12px 0;
-    margin-top: 12px;
-    margin-right: 9px;
     max-height: 281px;
     display: flex;
     flex-direction: column;
@@ -21,24 +19,29 @@
     object-fit: cover;
 }
 
-.ant-tag {
+.card-tags{
+    margin-top: 5px;
+}
+span.ant-tag {
     max-width: 46px;
     max-height: 20px;
-    margin-top: 10px;
-    margin-bottom: 10px;
     margin-right: 5px;
 }
 
 span.ant-typography {
+    margin-top: 5px;
     font-size: 1vw;
 }
 
 @media (min-width: 1024px ) {
     span.ant-typography {
-        font-size: 1vw;
+        font-size: 0.6vw;
     }
 }
 
+.card-film-title {
+    margin-bottom: 0;
+}
 .card-title{
     display: grid;
     font-weight: bold;
