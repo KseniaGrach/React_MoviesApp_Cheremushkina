@@ -1,0 +1,1 @@
+Готовый проект MovieApp: https://movies-app-one-lake.vercel.app
