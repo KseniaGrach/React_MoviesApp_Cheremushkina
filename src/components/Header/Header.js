@@ -25,11 +25,11 @@ const Header = ({ onTabChange }) => {
 };
 
 Header.defaultProps = {
-  changeTab: () => {},
+  onTabChange: () => {},
 };
 
 Header.propTypes = {
-  changeTab: PropTypes.func,
+  onTabChange: PropTypes.func,
 };
 
 export default Header;

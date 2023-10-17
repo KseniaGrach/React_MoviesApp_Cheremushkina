@@ -9,7 +9,7 @@ import MovieDbService from '../../services/MovieDbService';
 
 export default class RateMovie extends Component {
   state = {
-    ratingValue: this.props.rating,
+    ratingValue: store.get(`${this.props.id}`) || 0,
   };
 
   static defaultProps = {

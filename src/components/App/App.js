@@ -24,10 +24,7 @@ export default class App extends Component {
     totalPages: 0,
     guestSessionId: '',
     tabPane: '1',
-    rating: 0,
   };
-
-  MovieDbService = new MovieDbService();
 
   componentDidMount() {
     if (!store.get('guestSessionId')) {
@@ -96,7 +93,7 @@ export default class App extends Component {
       this.getPopularMovies();
     } else {
       callMovieDbService
-        .searchMovies(searchQuery, numberPage)
+        .searchMoviesData(searchQuery, numberPage)
         .then((item) => {
           this.setState({
             // eslint-disable-next-line react/no-unused-state
@@ -127,7 +124,7 @@ export default class App extends Component {
     const { numberPage } = this.state;
     const callMovieDbService = new MovieDbService();
     this.setState({
-      movies: [],
+      movieData: [],
       isLoading: true,
       notFound: false,
       isError: false,
@@ -160,7 +157,7 @@ export default class App extends Component {
   };
 
   getRatedMovies = () => {
-    const { guestSessionId } = this.state;
+    const { guestSessionId, numberPage } = this.state;
     const callMovieDbService = new MovieDbService();
     this.setState({
       ratedFilmData: [],
@@ -168,9 +165,14 @@ export default class App extends Component {
       notFound: false,
       isError: false,
     });
+
     callMovieDbService
-      .getRatedMovies(guestSessionId)
+      .getRatedMovies(guestSessionId, numberPage)
       .then((item) => {
+        this.setState({
+          totalPages: item.total_pages,
+          numberPage,
+        });
         if (item.results.length === 0) {
           this.setState({
             isLoading: false,
@@ -207,26 +209,38 @@ export default class App extends Component {
       this.setState(
         {
           tabPane: key,
+          numberPage: 1,
         },
         () => {
           this.getRatedMovies();
         }
       );
     } else {
-      this.setState({
-        notFound: false,
-        tabPane: key,
-      });
+      this.setState(
+        {
+          notFound: false,
+          tabPane: key,
+          numberPage: 1,
+        },
+        () => {
+          this.getPopularMovies();
+        }
+      );
     }
   };
 
   onPageChange = (page) => {
+    const { tabPane } = this.state;
     this.setState(
       {
         numberPage: page,
       },
       () => {
-        this.searchMoviesData();
+        if (tabPane === '1') {
+          this.searchMoviesData();
+        } else {
+          this.getRatedMovies();
+        }
       }
     );
   };
@@ -249,6 +263,7 @@ export default class App extends Component {
       const newMovieData = [...ratedFilmData, newMovie];
       return {
         ratedFilmData: newMovieData,
+        isLoading: false,
       };
     });
   };
